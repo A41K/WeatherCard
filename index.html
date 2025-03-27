@@ -695,12 +695,39 @@
         }
 
         // Weather API integration
-        const apiKey = '7febf1665205701be997ead7507a15ff';
+        const encodedApiKey = 'G5TGKYTGGE3DMNJSGA2TOMBRMJSTSOJXMVQWINZVGA3WCMJVMZTA====';
         const searchInput = document.querySelector('.search-input');
         const searchButton = document.querySelector('.search-button');
         const loadingIndicator = document.querySelector('.loading');
         const errorMessage = document.querySelector('.error-message');
         const apiWeatherSection = document.getElementById('api-weather');
+
+        // Function to decode base32 encoded string
+        function decodeBase32(encoded) {
+            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+            let bits = 0;
+            let value = 0;
+            let output = '';
+            
+            // Remove padding
+            encoded = encoded.replace(/=+$/, '');
+            
+            for (let i = 0; i < encoded.length; i++) {
+                const char = encoded[i];
+                const index = alphabet.indexOf(char.toUpperCase());
+                if (index === -1) continue; // Skip invalid characters
+                
+                value = (value << 5) | index;
+                bits += 5;
+                
+                if (bits >= 8) {
+                    output += String.fromCharCode((value >>> (bits - 8)) & 0xFF);
+                    bits -= 8;
+                }
+            }
+            
+            return output;
+        }
 
         searchButton.addEventListener('click', searchWeather);
         searchInput.addEventListener('keypress', function(e) {
@@ -717,6 +744,8 @@
             errorMessage.style.display = 'none';
             apiWeatherSection.style.display = 'none';
 
+            // Decode the API key when making the request
+            const apiKey = decodeBase32(encodedApiKey);
             fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
                 .then(response => {
                     if (!response.ok) {
@@ -845,51 +874,33 @@
                 c.style.boxShadow = '';
                 c.style.zIndex = '';
                 c.style.animation = '';
+                c.style.border = '';
+                c.querySelector('.card-temp').style.textShadow = '';
+                c.querySelector('.card-temp').style.color = '';
+                c.querySelector('.card-title').style.color = '';
+                c.style.position = '';
             });
             
             // Highlight the selected card
-            card.style.transform = 'translateY(-20px) scale(1.05)';
-            card.style.boxShadow = '0 15px 30px rgba(0, 0, 0, 0.4)';
+            card.style.transform = 'translateY(-20px) scale(1.1)';
+            card.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 255, 255, 0.3)';
             card.style.zIndex = '10';
+            card.style.position = 'relative';
             
-            // Add a more sophisticated animation
-            card.style.animation = 'card-pulse 3s infinite';
+            // Add a pulsating animation
+            card.style.animation = 'pulse-highlight 3s infinite';
             
             // Add a glowing border effect
-            card.style.border = '2px solid rgba(255, 255, 255, 0.2)';
+            card.style.border = '3px solid rgba(255, 255, 255, 0.6)';
             
-            // Make the temperature more prominent
+            // Make the temperature and title more prominent
             const tempElement = card.querySelector('.card-temp');
-            tempElement.style.textShadow = '0 0 10px rgba(255, 255, 255, 0.5)';
+            tempElement.style.textShadow = '0 0 15px rgba(255, 255, 255, 0.8)';
             tempElement.style.color = '#ffffff';
-        }
-
-        // Modify the searchWeather function to use translations for error messages
-        function searchWeather() {
-            const city = searchInput.value.trim();
-            if (!city) return;
-
-            loadingIndicator.style.display = 'block';
-            errorMessage.style.display = 'none';
-            apiWeatherSection.style.display = 'none';
-
-            fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(translations[currentLang].cityNotFound);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    displayWeather(data);
-                    loadingIndicator.style.display = 'none';
-                    apiWeatherSection.style.display = 'block';
-                })
-                .catch(error => {
-                    loadingIndicator.style.display = 'none';
-                    errorMessage.textContent = error.message;
-                    errorMessage.style.display = 'block';
-                });
+            
+            const titleElement = card.querySelector('.card-title');
+            titleElement.style.color = '#ffffff';
+            titleElement.style.textShadow = '0 0 10px rgba(255, 255, 255, 0.7)';
         }
 
         // Initialize everything when the page loads
